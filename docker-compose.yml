@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+   mysql:
+     image: mysql:8.4
+     container_name: myapp-mysql
+     restart: always 
+     environment: 
+       MYSQL_ROOT_PASSWORD: rootpassword 
+       MYSQL_DATABASE: userdb
+       MYSQL_PASSWORD: apppassword
+     ports:
+      - "3306:3306"
+     volumes:
+      - mysql_data:/var/lib/mysql 
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+
+     healthcheck:
+      test: [ "CMD", "mysqladmin", "ping","-h", "localhost"]
+      timeout: 10s
+      retries: 5
+      
+
+   app:
+    build: .
+    container_name: myapp-backend
+    restart: always 
+    ports:
+      - "3000:3000"
+    environment:
+      DB_HOST: mysql
+      DB_USER: appuser
+      DB_PASSWORD: apppassword
+      DB_NAME: userdb
+      PORT: 3000
+    depends_on:
+      mysql:
+        condition: service_healthy 
+    volumes:
+      - ./logs:/app/logs 
+
+volumes: 
+    mysql_data:
+    logs:
