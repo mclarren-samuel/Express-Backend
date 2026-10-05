@@ -1,6 +1,8 @@
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const userRepository = require('../repositories/userRepository');
 const logger = require('../middlewares/logger');
+const { getJwtSecret } = require('../middlewares/authenticate');
 
 class UserService {
     async register(name, email, password) {
@@ -20,7 +22,8 @@ class UserService {
     }
 
     async login(email, password) {
-        const user = await userRepository.findUserByEmail(email);
+        const normalizedEmail = email.trim().toLowerCase();
+        const user = await userRepository.findUserByEmail(normalizedEmail);
         if (!user) {
             logger.warn(`Login failed: No user with email ${email}`);
             throw new Error('Invalid credentials');
@@ -33,7 +36,16 @@ class UserService {
         }
 
         logger.info(`User logged in: ${email}`);
-        return { userId: user.id, name: user.name, message: 'Login successful' };
+        const token = jwt.sign(
+            { sub: String(user.id), name: user.name },
+            getJwtSecret(),
+            { expiresIn: process.env.JWT_EXPIRES_IN || '1h' }
+        );
+        return { userId: user.id, name: user.name, token, message: 'Login successful' };
+    }
+
+    async getProfile(userId) {
+        return userRepository.findUserById(userId);
     }
 }
 

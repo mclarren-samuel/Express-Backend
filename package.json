@@ -4,7 +4,8 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "node --test",
+    "check": "node --check server.js && node --check src/app.js && node --check src/controllers/userController.js && node --check src/config/database.js && node --check src/repositories/userRepository.js && node --check src/services/userService.js && node --check src/middlewares/authenticate.js",
     "start": "node server.js"
   },
   "keywords": [],
@@ -18,6 +19,7 @@
     "express-rate-limit": "^8.5.2",
     "helmet": "^8.2.0",
     "mysql2": "^3.22.5",
+    "jsonwebtoken": "^9.0.2",
     "winston": "^3.19.0"
   }
 }
